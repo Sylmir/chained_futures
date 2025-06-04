@@ -31,22 +31,22 @@ public:
   virtual void run(T t) = 0;
 };
 
-template<typename R, typename T>
+template<typename F, typename T>
 class chained_future_callback : public chained_future_callback_base<T> {
 public:
-  chained_future_callback(chained_future<R> future, std::function<R(T)> function) :
-    _future(future), _function(function) {
+  chained_future_callback(chained_future_res_t<F, T> future, F f) :
+    _future(future), _f(f) {
 
   }
 
   void run(T t) final override {
-    std::thread th(static_cast<void(&)(chained_future_res_t<R(*)(T), T>, std::function<R(T)>&&, T&&)>(chained_futures::launch), _future, _function, t);
+    std::thread th(static_cast<void(&)(chained_future_res_t<F, T>, F&&, T&&)>(chained_futures::launch), _future, _f, t);
     th.detach();
   }
 
 private:
-  chained_future<R> _future;
-  std::function<R(T)> _function;
+  chained_future_res_t<F, T> _future;
+  F _f;
 };
 
 template<typename T>
@@ -68,10 +68,10 @@ public:
     set_resolved();
   }
 
-  template<typename R>
-  chained_future<R> chain(std::function<R(T)> f) {
-    chained_future<R> future;
-    _callbacks.push_back(new chained_future_callback<R, T>(future, f));
+  template<typename F>
+  chained_future_res_t<F, T> chain(F f) {
+    chained_future_res_t<F, T> future;
+    _callbacks.push_back(new chained_future_callback<F, T>(future, f));
     run_callbacks();
     return future;
   }
@@ -122,7 +122,7 @@ namespace chained_futures {
       Args&&... args) {
     (void)policy;
     chained_future_res_t<F, Args...> result;
-    std::thread t(static_cast<void (&)(chained_future_res_t<F, Args...>, F&&, Args&&...)>(chained_futures::launch), result,
+    std::thread t(static_cast<void (&)(chained_future_res_t<F, Args...>, std::decay_t<F>&&, Args&&...)>(chained_futures::launch), result,
 	f, args...);
     t.detach();
     return result;
@@ -146,15 +146,9 @@ class chained_future {
 public:
   chained_future() : _state(std::make_shared<chained_future_state<T>>()) { }
 
-  template<typename R>
-  chained_future<R> chain(std::function<R(T)> f) {
+  template<typename F>
+  chained_future_res_t<F, T> chain(F f) {
     return _state->chain(f);
-  }
-
-  template<typename R>
-  chained_future<R> chain(R (*fn)(T)) {
-    std::function<R(T)> fun = fn;
-    return _state->chain(fun);
   }
 
   T& get() {
