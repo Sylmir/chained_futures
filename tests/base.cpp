@@ -1,3 +1,4 @@
+#include <cassert>
 #include <cmath>
 #include <cstdio>
 
@@ -38,7 +39,11 @@ int main() {
   });
   chained_future<int> f6 = f5.chain(functor());
 
-  printf("%d %d %f %d %d %d\n", f1.get(), f2.get(), f3.get(),
-      f4.get(), f5.get(), f6.get());
+  assert(f1.get() == 25);
+  assert(f2.get() == 50);
+  assert(f3.get() == 50.0f);
+  assert(f4.get() == 1);
+  assert(f5.get() == false);
+  assert(f6.get() == 25);
   return 0;
 }
