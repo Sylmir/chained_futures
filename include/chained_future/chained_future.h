@@ -206,7 +206,7 @@ namespace chained_futures {
       Args&&... args) {
     (void)policy;
     chained_future_res_t<F, Args...> result;
-    std::thread t(static_cast<void (&)(chained_future_res_t<F, Args...>, std::decay_t<F>&&, Args&&...)>(chained_futures::launch), result,
+    std::thread t(static_cast<void (&)(chained_future_res_t<F, Args...>, std::decay_t<F>&&, std::decay_t<Args>&&...)>(chained_futures::launch), result,
 	f, args...);
     t.detach();
     return result;
