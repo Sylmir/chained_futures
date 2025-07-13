@@ -221,10 +221,10 @@ namespace chained_futures {
   template<typename F, typename... Args>
   void launch(chained_future_res_t<F, Args...> future, F&& f, Args&&... args) {
     if constexpr (std::is_void_v<typename chained_future_res_t<F, Args...>::result_type>) {
-      std::forward<F>(f)(std::forward<Args>(args)...);
+      std::invoke(std::forward<F>(f), std::forward<Args>(args)...);
       future._state->resolve();
     } else {
-      future._state->resolve(std::forward<F>(f)(std::forward<Args>(args)...));
+      future._state->resolve(std::invoke(std::forward<F>(f), std::forward<Args>(args)...));
     }
   }
 }
