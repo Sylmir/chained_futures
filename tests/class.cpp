@@ -18,6 +18,10 @@ class Foo {
       _c = 1;
     }
 
+    int h(int r) {
+      return r + 2;
+    }
+
     inline int get_c() const {
       return _c;
     }
@@ -41,11 +45,13 @@ int main() {
   Foo foo;
   chained_future<int> f1 = chained_futures::async(&Foo::f, &foo);
   chained_future<int> f2 = f1.chain(f);
+  chained_future<int> f3 = f2.chain(std::bind_front(&Foo::h, &foo));
 
   chained_future<void> g1 = chained_futures::async(&Foo::g, &foo);
   chained_future<void> g2 = g1.chain(std::bind_front(g, &foo));
 
   assert(f2.get() == 27);
+  assert(f3.get() == 29);
   g2.get();
   assert(g_called.load(std::memory_order_acquire));
 
