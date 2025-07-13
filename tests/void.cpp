@@ -31,9 +31,9 @@ int main() {
   chained_future<int> f3 = f2.chain(h);
 
   assert(f1.get() == 12);
-  assert(f_result.load(std::memory_order_acquire) == 12);
   f2.get();
   assert(ran_g.load(std::memory_order_acquire));
+  assert(f_result.load(std::memory_order_acquire) == 12);
   assert(f3.get() == 25);
 
   return 0;
